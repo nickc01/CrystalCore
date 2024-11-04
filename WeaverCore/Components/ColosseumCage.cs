@@ -19,7 +19,7 @@ namespace WeaverCore.Components
             Large
         }
 
-        static CachedPrefab<ColosseumCage> _smallPrefab = new CachedPrefab<ColosseumCage>();
+        protected static CachedPrefab<ColosseumCage> _smallPrefab = new CachedPrefab<ColosseumCage>();
 
         public static ColosseumCage SmallPrefab
         {
@@ -33,7 +33,7 @@ namespace WeaverCore.Components
             }
         }
 
-        static CachedPrefab<ColosseumCage> _largePrefab = new CachedPrefab<ColosseumCage>();
+        protected static CachedPrefab<ColosseumCage> _largePrefab = new CachedPrefab<ColosseumCage>();
 
         public static ColosseumCage LargePrefab
         {
@@ -49,52 +49,57 @@ namespace WeaverCore.Components
 
         public static ColosseumCage GetDefaultPrefab(CageType cageType) => cageType == CageType.Small ? SmallPrefab : LargePrefab;
 
-        static Dictionary<string, UnboundCoroutine> audioRoutines = new Dictionary<string, UnboundCoroutine>();
+        protected static Dictionary<string, UnboundCoroutine> audioRoutines = new Dictionary<string, UnboundCoroutine>();
 
         [SerializeField]
-        SpriteRenderer previewImage;
+        protected SpriteRenderer previewImage;
 
         [field: SerializeField]
         public GameObject EntityToSpawn { get; set; }
 
-        [SerializeField]
-        float spawnDelay = 0f;
+        [field: SerializeField]
+        public Vector3 EntitySpawnOffset { get; private set; } = default;
 
         [SerializeField]
-        Animator anim;
+        protected float spawnDelay = 0f;
 
         [SerializeField]
-        GameObject strike;
+        protected Animator anim;
 
         [SerializeField]
-        float animationWaitTime = 1.25f;
+        protected GameObject strike;
 
         [SerializeField]
-        bool resetEntityGeo = true;
+        protected float animationWaitTime = 1.25f;
 
         [SerializeField]
-        OnDoneBehaviour onDone = OnDoneBehaviour.DestroyOrPool;
+        protected bool resetEntityGeo = true;
+
+        [SerializeField]
+        protected OnDoneBehaviour onDone = OnDoneBehaviour.DestroyOrPool;
+
+        [SerializeField]
+        bool debugTesting = false;
 
         [Header("Audio")]
         [Space]
         [SerializeField]
-        AudioClip appearAudioClip;
+        protected AudioClip appearAudioClip;
 
         [SerializeField]
-        float appearAudioDelay = 0.6f;
+        protected float appearAudioDelay = 0.6f;
 
         [SerializeField]
-        AudioClip openAudioClip;
+        protected AudioClip openAudioClip;
 
         [SerializeField]
-        float openAudioDelay = 0.4f;
+        protected float openAudioDelay = 0.4f;
 
         [SerializeField]
-        AudioClip disappearAudioClip;
+        protected AudioClip disappearAudioClip;
 
         [SerializeField]
-        float disappearAudioDelay = 0.6f;
-
+        protected float disappearAudioDelay = 0.6f;
 
         Coroutine summonRoutine;
 
@@ -109,11 +114,16 @@ namespace WeaverCore.Components
             audioRoutines.Clear();
         }
 
-        void Awake()
+        protected virtual void Awake()
         {
             if (previewImage != null)
             {
                 previewImage.enabled = false;
+            }
+
+            if (debugTesting)
+            {
+                DoSummon(null);
             }
         }
 
@@ -154,23 +164,17 @@ namespace WeaverCore.Components
             return true;
         }
 
-        IEnumerator SummonRoutine(GameObject prefab, Action<GameObject> onSummon)
+        protected GameObject SpawnObject(GameObject prefab)
         {
-            yield return new WaitForSeconds(spawnDelay);
-            anim.gameObject.SetActive(true);
-            TriggerAudio(new List<AudioClip>{ appearAudioClip }, new List<float> { appearAudioDelay });
-            
-            yield return new WaitForSeconds(animationWaitTime);
-
             GameObject instance;
 
             if (prefab.TryGetComponent<PoolableObject>(out var p))
             {
-                instance = Pooling.Instantiate(prefab,transform.position, Quaternion.identity);
+                instance = Pooling.Instantiate(prefab,transform.TransformPoint(EntitySpawnOffset), prefab.transform.rotation);
             }
             else
             {
-                instance = GameObject.Instantiate(prefab, transform.position, Quaternion.identity);
+                instance = GameObject.Instantiate(prefab, transform.TransformPoint(EntitySpawnOffset), prefab.transform.rotation);
             }
 
             if (resetEntityGeo && HealthUtilities.HasHealthComponent(instance))
@@ -179,6 +183,22 @@ namespace WeaverCore.Components
                 HealthUtilities.SetMediumGeo(instance, 0);
                 HealthUtilities.SetLargeGeo(instance, 0);
             }
+
+            return instance;
+        }
+
+        protected virtual IEnumerator SummonRoutine(GameObject prefab, Action<GameObject> onSummon)
+        {
+            yield return new WaitForSeconds(spawnDelay);
+            if (anim != null)
+            {
+                anim.gameObject.SetActive(true);
+            }
+            TriggerAudio(new List<AudioClip>{ appearAudioClip }, new List<float> { appearAudioDelay });
+            
+            yield return new WaitForSeconds(animationWaitTime);
+
+            GameObject instance = SpawnObject(prefab);
 
             if (strike != null)
             {
@@ -196,7 +216,7 @@ namespace WeaverCore.Components
             }
             finally
             {
-                onDone.DoneWithObject(this, 1.5f);
+                onDone.DoneWithObject(this, 3f);
             }
         }
 
@@ -268,6 +288,12 @@ namespace WeaverCore.Components
             instance.DoSummon(prefabToSpawn, onSummon);
 
             return instance;
+        }
+
+        protected virtual void OnDrawGizmosSelected() 
+        {
+            Gizmos.color = new Color(0f,1f,0f, 0.25f);
+            Gizmos.DrawCube(transform.TransformPoint(EntitySpawnOffset), new Vector3(0.35f, 0.35f, 0.35f));
         }
     }
 }

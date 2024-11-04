@@ -6,10 +6,10 @@ using WeaverCore.Components;
 
 namespace WeaverCore.Utilities
 {
-	/// <summary>
-	/// Contains many utility functions related to the Hero (The player character)
-	/// </summary>
-	public static class HeroUtilities
+    /// <summary>
+    /// Contains many utility functions related to the Hero (The player character)
+    /// </summary>
+    public static class HeroUtilities
     {
 		static AudioClip cutsceneBeginSound = null;
 

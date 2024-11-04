@@ -180,7 +180,14 @@ namespace WeaverCore
 
                     //WeaverLog.Log("FOUND ID = " + data.Substring(startIndex, nextComma - startIndex));
 
-                    objectReferenceTable.Add(data.Substring(startIndex, nextComma - startIndex).TrimEnd(']'), objReferences[referenceCounter]);
+                    UnityEngine.Object reference = null;
+
+                    if (objReferences != null && referenceCounter < objReferences.Count)
+                    {
+                        reference = objReferences[referenceCounter];
+                    }
+
+                    objectReferenceTable.Add(data.Substring(startIndex, nextComma - startIndex).TrimEnd(']'), reference);
 
                     referenceCounter++;
 

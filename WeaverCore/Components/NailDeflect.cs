@@ -42,7 +42,7 @@ namespace WeaverCore.Components
             }
         }
 
-        private void OnTriggerEnter2D(Collider2D collision)
+        /*private void OnTriggerEnter2D(Collider2D collision)
         {
             if (!(collision.tag == "Nail Attack") || Time.time < deflectTimer)
             {
@@ -64,7 +64,7 @@ namespace WeaverCore.Components
 					IgnoreInvincible = false
 				});
             }
-        }
+        }*/
 
         public static void PlayDeflectEffects(Vector3 playerPosition, GameObject deflectedObject, CardinalDirection hitDirection, bool applyRecoil = true, bool applyCameraShake = true)
         {

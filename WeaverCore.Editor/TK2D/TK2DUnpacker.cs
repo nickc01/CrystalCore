@@ -113,7 +113,7 @@ namespace WeaverCore.Editor
             Dictionary<string, System.Collections.Generic.List<Sprite>> ExtractedSprites = new Dictionary<string, System.Collections.Generic.List<Sprite>>();
 			foreach (var texCollection in import.collectionTextures)
 			{
-				var dir = new DirectoryInfo($"Assets\\{fileName} Animations\\{texCollection.collection.spriteCollectionName} Unpacked");
+				var dir = new DirectoryInfo($"Assets{Path.DirectorySeparatorChar}{fileName} Animations{Path.DirectorySeparatorChar}{texCollection.collection.spriteCollectionName} Unpacked");
 				directories.Add(dir);
 				yield return UnpackSprites(texCollection.collection.spriteCollectionName, new SpriteMapImport
 				{
@@ -177,7 +177,7 @@ namespace WeaverCore.Editor
 				data.AddClip(clip);
 			}
 
-			AssetDatabase.CreateAsset(data, $"Assets\\{fileName} Animations\\{fileName}.asset");
+			AssetDatabase.CreateAsset(data, $"Assets{Path.DirectorySeparatorChar}{fileName} Animations{Path.DirectorySeparatorChar}{fileName}.asset");
 		}
 
 		/// <summary>
@@ -235,7 +235,7 @@ namespace WeaverCore.Editor
 			}
 
 
-			UnboundCoroutine.Start(UnpackSprites(info.GetFileName(), import, importedTextures, new DirectoryInfo($"Assets\\{info.GetFileName()} Unpacked")));
+			UnboundCoroutine.Start(UnpackSprites(info.GetFileName(), import, importedTextures, new DirectoryInfo($"Assets{Path.DirectorySeparatorChar}{info.GetFileName()} Unpacked")));
 		}
 
 		/// <summary>
@@ -406,7 +406,7 @@ namespace WeaverCore.Editor
 
 					var texture = importedTextures[map.materialId];
 					var spriteTexture = ExtractSpriteFromTex(texture, map);
-					var spritePath = $"{relativeDir}\\{map.name}.png";
+					var spritePath = $"{relativeDir}{Path.DirectorySeparatorChar}{map.name}.png";
 					spritePaths.Add(spritePath);
 					spriteTextures.Add(spriteTexture);
 					File.WriteAllBytes(spritePath, spriteTexture.EncodeToPNG());
@@ -511,7 +511,7 @@ namespace WeaverCore.Editor
 			}
 			else if (UnpackTK2DWindow.Settings.UnpackMode == UnpackTK2DWindow.UnpackMode.ToSprite)
 			{
-				var outputPath = $"{relativeDir}\\{name}.png";
+				var outputPath = $"{relativeDir}{Path.DirectorySeparatorChar}{name}.png";
 				var sprites = spritePaths.Select(s => s == null ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(s)).ToList();
 
 				yield return TexturePacker.PackTextures(new FileInfo(outputPath), sprites, deleteOld: true);

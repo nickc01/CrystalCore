@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467cfd72665795c4f89e874c3c17252a, type: 3}
+  m_Name: Colosseum Spike Animations
+  m_EditorClassIdentifier: 
+  clipNames:
+  - Idle
+  - Antic
+  - Expand
+  - Retract
+  clipFrameStartIndexes: 00000000010000000400000008000000
+  clipFrameCounts: 01000000030000000400000003000000
+  frames:
+  - {fileID: -6164719757290450169, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: -3309065645199807752, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 4117438388690523290, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 2894819120505586399, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: -1928383395145760070, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 7768927131924909648, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 3229499758232685768, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: -681883811432022889, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 7085077753778919679, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: 3897055126281487664, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  - {fileID: -6164719757290450169, guid: fa381916a95f133e5be89cf19c2f3de5, type: 3}
+  clipFPSs:
+  - 30
+  - 12
+  - 12
+  - 12
+  clipWrapModes: 01000000020000000000000000000000
+  clipLoopStarts: 00000000010000000000000000000000
