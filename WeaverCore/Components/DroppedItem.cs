@@ -2,7 +2,9 @@ using Modding;
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 using WeaverCore.Assets.Components;
+using WeaverCore.Attributes;
 using WeaverCore.Settings;
 using WeaverCore.Utilities;
 
@@ -36,6 +38,9 @@ namespace WeaverCore.Components
         [field: SerializeField]
         [field: Tooltip("The angle range the object will be flung at")]
         public Vector2 FlingAngleMinMax = new Vector2(82, 86);
+
+        [field: SerializeField]
+        public UnityEvent OnPickup;
 
         [NonSerialized]
         InspectRegion _inspectionRegion;
@@ -132,7 +137,13 @@ namespace WeaverCore.Components
             {
                 ItemActive = false;
                 GetComponent<SpriteRenderer>().enabled = false;
+                if (TryGetComponent<AudioSource>(out var audio))
+                {
+                    audio.Stop();
+                }
                 OnGiveItem();
+                WeaverLog.Log("ON PICKUP");
+                OnPickup?.Invoke();
 
                 if (SettingsStorage.HasField<bool>(SettingsField))
                 {

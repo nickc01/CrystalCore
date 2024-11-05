@@ -14,6 +14,12 @@ namespace WeaverCore.Components
     /// </summary>
     public abstract class InspectRegion : MonoBehaviour
     {
+        public enum HeroSidePositions
+        {
+            Left,
+            Right,
+            Both
+        }
         /// <summary>
         /// The prefab for the inspection prompt.
         /// </summary>
@@ -46,6 +52,10 @@ namespace WeaverCore.Components
         [SerializeField]
         [Tooltip("The name of the event that is triggered when the player is in range. Leave empty if no event should be fired.")]
         string enterRangeEvent = "";
+
+        [SerializeField]
+        [Tooltip("Is the player able to pick up the item from the left, the right, or both?")]
+        HeroSidePositions sidePositions = HeroSidePositions.Both;
 
         [SerializeField]
         float moveToOffset = 0.25f;
@@ -222,7 +232,24 @@ namespace WeaverCore.Components
 
             var heroRB = HeroController.instance.GetComponent<Rigidbody2D>();
 
-            if (playerX >= selfX && playerX < rightProx)
+            bool canGoLeft = true;
+            bool canGoRight = true;
+            
+            if (sidePositions == HeroSidePositions.Left)
+            {
+                canGoRight = false;
+            }
+            else if (sidePositions == HeroSidePositions.Right)
+            {
+                canGoLeft = false;
+            }
+            else
+            {
+                canGoRight = playerX >= selfX && playerX < rightProx;
+                canGoLeft = playerX >= leftProx && playerX < selfX;
+            }
+
+            if (canGoRight)
             {
                 //MOVE RIGHT
                 Player.Player1.transform.SetScaleX(-1f);
@@ -238,7 +265,7 @@ namespace WeaverCore.Components
                     yield return null;
                 }
             }
-            else if (playerX >= leftProx && playerX < selfX)
+            else if (canGoLeft)
             {
                 //MOVE LEFT
                 Player.Player1.transform.SetScaleX(1f);
