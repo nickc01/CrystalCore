@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WeaverCore.Utilities;
+using UnityEngine;
 
 namespace WeaverCore.Game.Tools
 {
@@ -17,7 +19,9 @@ namespace WeaverCore.Game.Tools
 		{
 			get
 			{
-				return new FileInfo(typeof(Initialization).Assembly.Location).Directory.CreateSubdirectory("WeaverCore").CreateSubdirectory("Dumps");
+				var location = new FileInfo(typeof(Initialization).Assembly.Location).Directory.CreateSubdirectory("WeaverCore").CreateSubdirectory("Dumps");
+				UnityEngine.Debug.Log("Dump Location = " + location.FullName);
+				return location;
 			}
 		}
 	}

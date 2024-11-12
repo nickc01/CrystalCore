@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467cfd72665795c4f89e874c3c17252a, type: 3}
+  m_Name: Platform Animations
+  m_EditorClassIdentifier: 
+  clipNames:
+  - Idle
+  - Retracted
+  - Expand
+  - Retract
+  - Expanded
+  clipFrameStartIndexes: 000000000100000002000000080000000e000000
+  clipFrameCounts: 0100000001000000060000000600000001000000
+  frames:
+  - {fileID: -2857789919845657915, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -3331659043707713655, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2265279663151537836, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -8138269613519457644, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -4004892655546245149, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2305046815168944191, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2837840508930066068, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2857789919845657915, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2837840508930066068, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2305046815168944191, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -4004892655546245149, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -8138269613519457644, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2265279663151537836, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -3331659043707713655, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  - {fileID: -2857789919845657915, guid: 2308618eb8211b7248b6059748f32631, type: 3}
+  clipFPSs:
+  - 30
+  - 30
+  - 20
+  - 20
+  - 20
+  clipWrapModes: 0600000001000000000000000000000006000000
+  clipLoopStarts: 0000000000000000000000000000000000000000

@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using WeaverCore.Attributes;
 using WeaverCore.Components.DeathEffects;
 using WeaverCore.Enums;
 using WeaverCore.Utilities;
@@ -48,8 +46,6 @@ namespace WeaverCore.Components
         }
 
         public static ColosseumCage GetDefaultPrefab(CageType cageType) => cageType == CageType.Small ? SmallPrefab : LargePrefab;
-
-        protected static Dictionary<string, UnboundCoroutine> audioRoutines = new Dictionary<string, UnboundCoroutine>();
 
         [SerializeField]
         protected SpriteRenderer previewImage;
@@ -102,17 +98,6 @@ namespace WeaverCore.Components
         protected float disappearAudioDelay = 0.6f;
 
         Coroutine summonRoutine;
-
-        [OnRuntimeInit]
-        static void OnRuntimeInit()
-        {
-            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnSceneChange;
-        }
-
-        static void OnSceneChange(Scene from, Scene to)
-        {
-            audioRoutines.Clear();
-        }
 
         protected virtual void Awake()
         {
@@ -194,7 +179,7 @@ namespace WeaverCore.Components
             {
                 anim.gameObject.SetActive(true);
             }
-            TriggerAudio(new List<AudioClip>{ appearAudioClip }, new List<float> { appearAudioDelay });
+            ColosseumAudio.TriggerAudio(new List<AudioClip>{ appearAudioClip }, new List<float> { appearAudioDelay });
             
             yield return new WaitForSeconds(animationWaitTime);
 
@@ -205,7 +190,7 @@ namespace WeaverCore.Components
                 strike.gameObject.SetActive(true);
             }
 
-            TriggerAudio(new List<AudioClip> { openAudioClip, disappearAudioClip }, new List<float> { openAudioDelay, disappearAudioDelay });
+            ColosseumAudio.TriggerAudio(new List<AudioClip> { openAudioClip, disappearAudioClip }, new List<float> { openAudioDelay, disappearAudioDelay });
             try
             {
                 onSummon?.Invoke(instance);
@@ -217,52 +202,6 @@ namespace WeaverCore.Components
             finally
             {
                 onDone.DoneWithObject(this, 3f);
-            }
-        }
-
-        public static void TriggerAudio(List<AudioClip> clips, List<float> delays)
-        {
-            string combinedName = "";
-            for (int i = 0; i < clips.Count - 1; i++)
-            {
-                combinedName += clips[i].name + "_-_";
-            }
-            combinedName += clips[clips.Count - 1].name;
-            if (audioRoutines.ContainsKey(combinedName))
-            {
-                //WeaverLog.Log("NOT TRIGGERING Clip = " + combinedName);
-                return;
-            }
-
-            //WeaverLog.Log("TRIGGERING Clip = " + combinedName);
-
-            UnboundCoroutine audioRoutine = null;
-            
-            audioRoutine = UnboundCoroutine.Start(TriggerAudioRoutine(combinedName, clips, delays, () => audioRoutine));
-
-            audioRoutines.Add(combinedName, audioRoutine);
-        }
-
-        static IEnumerator TriggerAudioRoutine(string combinedName, List<AudioClip> clips, List<float> delays, Func<UnboundCoroutine> routine)
-        {
-            yield return null;
-            for (int i = 0; i < clips.Count; i++)
-            {
-                if (!audioRoutines.ContainsKey(combinedName))
-                {
-                    //WeaverLog.Log("NOT Playing Clip = " + combinedName);
-                    yield break;
-                }
-
-                //WeaverLog.Log("Playing Clip = " + combinedName);
-
-                WeaverAudio.PlayAtPoint(clips[i], Player.Player1.transform.position);
-                yield return new WaitForSeconds(delays[i]);
-            }
-
-            if (audioRoutines.ContainsKey(combinedName))
-            {
-                audioRoutines.Remove(combinedName);
             }
         }
 

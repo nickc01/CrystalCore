@@ -51,7 +51,7 @@ namespace WeaverCore.Game
 		public static void Save(GlobalSettings settings)
 		{
 			var type = settings.GetType();
-			var file = new FileInfo(SettingsFolder.FullName + "\\" + type.FullName + ".cfg");
+			var file = new FileInfo(SettingsFolder.FullName + Path.DirectorySeparatorChar + type.FullName + ".cfg");
 			File.WriteAllText(file.FullName, JsonUtility.ToJson(settings));
 		}
 
