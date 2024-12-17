@@ -21,13 +21,10 @@ namespace WeaverCore.Internal
             base.Initialize();
         }*/
 
+        internal static event Func<List<(string, string)>> OnPreloadNames;
+        internal static event Action<Dictionary<string, Dictionary<string, GameObject>>> OnPreloadedObjects;
 
-        public override string GetVersion()
-        {
-            return "2.2.0.7";
-        }
-
-        public override System.Collections.Generic.List<(string, string)> GetPreloadNames()
+        List<(string, string)> GetBasePreloadNames()
         {
             return new System.Collections.Generic.List<(string, string)>
             {
@@ -39,6 +36,69 @@ namespace WeaverCore.Internal
                 ("Tutorial_01", "_Enemies/Buzzer"),
                 ("Town", "_NPCs/Elderbug/Dream Dialogue")
             };
+            /*var preloads = WeaverAssets.LoadAssetsOfType<ChallengeEnemyPreloads, TheSanctuaryMod>().ToList();
+            WeaverLog.Log("FOUND PRELOAD OBJECTS = " + preloads != null ? preloads.Count.ToString() : "null");
+
+            if (preloads != null)
+            {
+                foreach (var p in preloads)
+                {
+                    WeaverLog.Log("Preload = " + p);
+                    foreach (var path in p.preloadPaths)
+                    {
+                        WeaverLog.Log("PATH = " + path);
+                    }
+                }
+            }
+            return base.GetPreloadNames();*/
+        }
+
+        /*public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
+        {
+            
+        }*/
+
+
+        public override string GetVersion()
+        {
+            return "2.2.0.7";
+        }
+
+        public override System.Collections.Generic.List<(string, string)> GetPreloadNames()
+        {
+            List<(string, string)> extraPreloads = new List<(string, string)>();
+            if (OnPreloadNames != null)
+            {
+                foreach (var func in OnPreloadNames.GetInvocationList())
+                {
+                    if (func is Func<List<(string, string)>> funcCasted)
+                    {
+                        var funcResults = funcCasted.Invoke();
+                        if (funcResults != null)
+                        {
+                            extraPreloads.AddRange(funcResults);
+                        }
+                    }
+                }
+            }
+
+            var baseList = base.GetPreloadNames();
+
+            if (baseList == null)
+            {
+                baseList = new List<(string, string)>();
+            }
+
+            baseList.AddRange(GetBasePreloadNames());
+
+            foreach (var extra in extraPreloads)
+            {
+                WeaverLog.Log("Adding Extra Preload = " + extra.Item1 + ":" + extra.Item2);
+            }
+
+            baseList.AddRange(extraPreloads);
+
+            return baseList;
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -217,6 +277,8 @@ namespace WeaverCore.Internal
                 var assetContainer = FontAssetContainer.Load();
                 assetContainer.ReplaceFonts();
             }*/
+
+            OnPreloadedObjects?.Invoke(preloadedObjects);
 
             base.Initialize(preloadedObjects);
         }

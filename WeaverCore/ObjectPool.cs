@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 using WeaverCore.Attributes;
 using WeaverCore.DataTypes;
 using WeaverCore.Enums;
+using WeaverCore.Features;
 using WeaverCore.Interfaces;
 using WeaverCore.Utilities;
 
@@ -567,6 +568,11 @@ namespace WeaverCore
 				return;
 			}
 
+			if (poolableObject.TryGetComponent<Enemy>(out var enemy))
+			{
+				enemy.StopAllBoundRoutines();
+			}
+
 
 			ComponentPath[] objComponents = poolableObject.GetAllComponents();
 			ComponentPath[] prefabComponents = Prefab.GetAllComponents();
@@ -647,6 +653,10 @@ namespace WeaverCore
 			//If there was a valid object in the queue
 			if (obj != null && poolAllSet)
 			{
+				if (obj.TryGetComponent<Enemy>(out var enemy))
+				{
+					enemy.StopAllBoundRoutines();
+				}
 				//WeaverLog.Log(obj);
                 DebugPrint($"Spawning Object from pool... {Prefab}");
                 obj.gameObject.name = InstanceName;

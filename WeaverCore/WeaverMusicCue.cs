@@ -135,29 +135,35 @@ namespace WeaverCore
             //channelInfosSetter(this, container.channelInfos);
             //alternativesSetter(this, container.alternatives);
 
-            MusicChannelInfo[] channels = new MusicChannelInfo[channelInfos_clip.Count];
-
-            for (int i = 0; i < channels.Length; i++)
+            if (channelInfos_clip != null)
             {
-                channels[i] = new MusicChannelInfo();
-                clipSetter(channels[i], channelInfos_clip[i]);
-                syncSetter(channels[i], channelInfos_sync[i]);
-            }
+                MusicChannelInfo[] channels = new MusicChannelInfo[channelInfos_clip.Count];
 
-            channelInfosSetter(this, channels);
-
-            Alternative[] alternatives = new Alternative[alternatives_Cue.Count];
-
-            for (int i = 0; i < alternatives.Length; i++)
-            {
-                alternatives[i] = new Alternative()
+                for (int i = 0; i < channels.Length; i++)
                 {
-                    PlayerDataBoolKey = alternatives_PlayerDataBoolKey[i],
-                    Cue = alternatives_Cue[i]
-                };
+                    channels[i] = new MusicChannelInfo();
+                    clipSetter(channels[i], channelInfos_clip[i]);
+                    syncSetter(channels[i], channelInfos_sync[i]);
+                }
+
+                channelInfosSetter(this, channels);
             }
 
-            alternativesSetter(this, alternatives);
+            if (alternatives_Cue != null)
+            {
+                Alternative[] alternatives = new Alternative[alternatives_Cue.Count];
+
+                for (int i = 0; i < alternatives.Length; i++)
+                {
+                    alternatives[i] = new Alternative()
+                    {
+                        PlayerDataBoolKey = alternatives_PlayerDataBoolKey[i],
+                        Cue = alternatives_Cue[i]
+                    };
+                }
+
+                alternativesSetter(this, alternatives);
+            }
 
 #endif
         }

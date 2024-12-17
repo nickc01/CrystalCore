@@ -19,7 +19,7 @@ namespace WeaverCore.Editor.Menu_Items
 	/// </summary>
     public static class InsertMenu
 	{
-        static GameObject InsertObject(string prefabName)
+        public static GameObject InsertObject(string prefabName)
         {
             var prefab = WeaverAssets.LoadWeaverAsset<GameObject>(prefabName);
             if (prefab == null)
@@ -65,7 +65,7 @@ namespace WeaverCore.Editor.Menu_Items
             return instance;
         }
 
-		static GameObject InsertObject(string prefabName, Vector3 position, Quaternion rotation)
+		public static GameObject InsertObject(string prefabName, Vector3 position, Quaternion rotation)
         {
 			var prefab = WeaverAssets.LoadWeaverAsset<GameObject>(prefabName);
 			if (prefab == null)
@@ -241,22 +241,58 @@ namespace WeaverCore.Editor.Menu_Items
             InsertObject("Boss Scene Controller", default, default);
         }
 
-        [MenuItem("WeaverCore/Insert/Colosseum Cage Small")]
+        [MenuItem("WeaverCore/Insert/Colosseum/Cage Small")]
         public static void InsertColosseumCageSmall()
         {
             InsertObject("Colosseum Cage Small");
         }
 
-        [MenuItem("WeaverCore/Insert/Colosseum Cage Large")]
+        [MenuItem("WeaverCore/Insert/Colosseum/Cage Large")]
         public static void InsertColosseumCageLarge()
         {
             InsertObject("Colosseum Cage Large");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Platform")]
+        public static void InsertColosseumPlatform()
+        {
+            InsertObject("Colosseum Platform");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Simple Gate")]
+        public static void InsertSimpleColosseumGate()
+        {
+            InsertObject("Simple Colosseum Gate");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Room Manager Template")]
+        public static void InsertColosseumRoomManagerTemplate()
+        {
+            InsertObject("Colosseum Room Manager Template");
         }
 
         [MenuItem("WeaverCore/Insert/Breakable Wall")]
         public static void InsertBreakableWall()
         {
             InsertObject("Breakable Wall");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Wall Left")]
+        public static void InsertColosseumWallL()
+        {
+            InsertObject("Colosseum Wall L");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Wall Right")]
+        public static void InsertColosseumWallR()
+        {
+            InsertObject("Colosseum Wall R");
+        }
+
+        [MenuItem("WeaverCore/Insert/Colosseum/Wall Ceiling")]
+        public static void InsertColosseumWallC()
+        {
+            InsertObject("Colosseum Wall C");
         }
 
 

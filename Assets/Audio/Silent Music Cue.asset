@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe1dbd35e8b778f43b1ef1b7b90e914b, type: 3}
+  m_Name: Silent Music Cue
+  m_EditorClassIdentifier: 
+  originalMusicEventName: 
+  originalMusicTrackNumber: 0
+  snapshot: {fileID: 0}
+  channelInfos:
+  - clip: {fileID: 8300000, guid: 9b3df9f5df90359459616b198515adb2, type: 3}
+    sync: 0
+  - clip: {fileID: 0}
+    sync: 0
+  - clip: {fileID: 0}
+    sync: 0
+  - clip: {fileID: 0}
+    sync: 0
+  - clip: {fileID: 0}
+    sync: 0
+  - clip: {fileID: 0}
+    sync: 0
+  alternatives: []
+  useSnapshot: 1
+  m_snapshot: 0
+  channelInfos_clip:
+  - {fileID: 8300000, guid: 9b3df9f5df90359459616b198515adb2, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  channelInfos_sync: 000000000000000000000000000000000000000000000000
+  alternatives_PlayerDataBoolKey: []
+  alternatives_Cue: []

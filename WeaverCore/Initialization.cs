@@ -20,7 +20,7 @@ namespace WeaverCore
 	/// </summary>
     public static class Initialization
 	{
-		public const bool PERFORMANCE_DEBUGGING = false;
+		public const bool PERFORMANCE_DEBUGGING = true;
 
 		/// <summary>
 		/// Whether WeaverCore has been initialized or not

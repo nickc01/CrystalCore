@@ -1072,6 +1072,11 @@ namespace WeaverCore.Editor.Compilation
 
 								split = objectArgumentAssemblyValue.AsString().Split(',');
 
+								if (split.Length < 2)
+								{
+									continue;
+								}
+
                                 typeName = split[0].Trim();
                                 assemblyName = split[1].Trim();
 

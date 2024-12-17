@@ -138,6 +138,8 @@ public class WeaverAnimationDataEditor : Editor
 				EditorGUILayout.EndHorizontal();
 			}
 
+			EditorGUILayout.Space();
+
 			if (GUILayout.Button("Add Frame"))
 			{
 				newClipFrames.Add(null);
@@ -169,6 +171,10 @@ public class WeaverAnimationDataEditor : Editor
 					}
 					//WeaverLog.Log("OBJ = " + obj);
 				}
+			}
+			if (GUILayout.Button("Reverse Frame Order"))
+			{
+				newClipFrames.Reverse();
 			}
 			if (GUILayout.Button("Clear All Frames"))
 			{
