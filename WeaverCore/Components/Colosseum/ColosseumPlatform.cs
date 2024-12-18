@@ -57,6 +57,8 @@ namespace WeaverCore.Components.Colosseum
         [NonSerialized]
         float _startTime = -1;
 
+        //[SerializeField] private bool resetCurves = false;
+
         [NonSerialized]
         ColosseumPlatformController platform;
 
@@ -118,6 +120,47 @@ namespace WeaverCore.Components.Colosseum
                 Expand();
             }
         }
+
+        /*private void SetDefaultCurves()
+        {
+            // Initialize expand curve
+            expandCurve = new AnimationCurve();
+            expandCurve.AddKey(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f)); // Linear start
+            expandCurve.AddKey(new Keyframe(0.95f, 1.05f, 0.0f, 0.0f)); // Overshoot at 0.95
+            expandCurve.AddKey(new Keyframe(1.0f, 1.0f, -1.0f, -1.0f)); // Back to 1.0
+
+            // Initialize retract curve
+            retractCurve = new AnimationCurve();
+            retractCurve.AddKey(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f)); // Start at 0.0
+            retractCurve.AddKey(new Keyframe(0.05f, -0.05f, 0.0f, 0.0f)); // Dip below at 0.05
+            retractCurve.AddKey(new Keyframe(1.0f, 1.0f, 1.0f, 1.0f)); // Linearly return to 1.0
+
+    #if UNITY_EDITOR
+            // Force linear tangents
+            for (int i = 0; i < expandCurve.keys.Length; i++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(expandCurve, i, AnimationUtility.TangentMode.Linear);
+                AnimationUtility.SetKeyRightTangentMode(expandCurve, i, AnimationUtility.TangentMode.Linear);
+            }
+
+            for (int i = 0; i < retractCurve.keys.Length; i++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(retractCurve, i, AnimationUtility.TangentMode.Linear);
+                AnimationUtility.SetKeyRightTangentMode(retractCurve, i, AnimationUtility.TangentMode.Linear);
+            }
+    #endif
+        }
+
+        private void OnValidate()
+        {
+            if (resetCurves)
+            {
+                Debug.Log("Resetting animation curves to default values.");
+
+                SetDefaultCurves();
+                resetCurves = false; // Reset the toggle
+            }
+        }*/
 
         IEnumerator TestingRoutine()
         {
@@ -259,7 +302,7 @@ namespace WeaverCore.Components.Colosseum
         {
             for (float t = 0; t < time; t += Time.deltaTime)
             {
-                obj.localPosition = Vector3.Lerp(from, to, curve.Evaluate(t / time));
+                obj.localPosition = Vector3.LerpUnclamped(from, to, curve.Evaluate(t / time));
                 yield return null;
             }
             obj.localPosition = to;
