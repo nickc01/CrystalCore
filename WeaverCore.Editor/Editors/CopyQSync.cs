@@ -26,7 +26,7 @@ public static class CopyQSync
     private static readonly int editorPid = Process.GetCurrentProcess().Id;
     private static readonly string pidFilePath = Path.Combine(Path.GetTempPath(), $"copyqsync_{editorPid}.pid");
 
-    static CopyQSync()
+    /*static CopyQSync()
     {
         if (IsLinux())
         {
@@ -56,7 +56,7 @@ public static class CopyQSync
 
         AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
         EditorApplication.quitting += OnEditorQuitting;
-    }
+    }*/
 
     private static void OnBeforeAssemblyReload()
     {

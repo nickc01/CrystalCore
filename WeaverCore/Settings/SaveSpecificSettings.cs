@@ -35,10 +35,14 @@ namespace WeaverCore.Settings
 		[OnFeatureLoad]
 		static void SaveRegistered(SaveSpecificSettings settings)
 		{
-			if (GetSaveSettings(settings.GetType()) == null)
+			if (!saveData.Contains(settings))
 			{
 				RegisterSaveSpecificSettings(settings);
 			}
+			/*if (GetSaveSettings(settings.GetType()) == null)
+			{
+				RegisterSaveSpecificSettings(settings);
+			}*/
 		}
 
 		[OnFeatureUnload]
@@ -137,7 +141,6 @@ namespace WeaverCore.Settings
             return saveData.OfType<T>().FirstOrDefault();
 		}
 
-
 		/// <summary>
 		/// Finds the save specific settings of the specified type. Returns null if it has not been registered
 		/// </summary>
@@ -145,7 +148,7 @@ namespace WeaverCore.Settings
 		public static SaveSpecificSettings GetSaveSettings(Type type)
 		{
             EditorLoadSaveSettings();
-            return saveData.FirstOrDefault(s => type.IsAssignableFrom(saveData.GetType()));
+            return saveData.FirstOrDefault(s => type.IsAssignableFrom(s.GetType()));
 		}
 
 
@@ -196,5 +199,5 @@ namespace WeaverCore.Settings
 			ModHooks.OnSavegameSave(CurrentSaveSlot);
 #endif
 		}
-	}
+    }
 }

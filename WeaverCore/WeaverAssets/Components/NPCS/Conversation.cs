@@ -37,6 +37,9 @@ namespace WeaverCore.Assets.Components
 
         bool talking = false;
 
+        [field: SerializeField]
+        public bool ShowBoxOnStart { get; set; } = true;
+
         /// <summary>
         /// The result of the yes/no dialog box
         /// </summary>
@@ -100,12 +103,16 @@ namespace WeaverCore.Assets.Components
                 HeroUtilities.PlayPlayerClip("LookUp");
             }
 
-            var dialogManager = GameObject.Find("DialogueManager");
+            /*var dialogManager = GameObject.Find("DialogueManager");
             if (dialogManager != null)
             {
                 EventManager.SendEventToGameObject("BOX UP", dialogManager, gameObject);
+            }*/
+            boxVisible = false;
+            if (ShowBoxOnStart)
+            {
+                ShowConversationBox();
             }
-            boxVisible = true;
             yield return new WaitForSeconds(0.3f);
             yield return DoConversation();
             onDone?.Invoke();
