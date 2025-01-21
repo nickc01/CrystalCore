@@ -11,46 +11,70 @@ namespace WeaverCore.Editor.Patches
 		[OnHarmonyPatch]
 		static void OnHarmonyPatch(HarmonyPatcher patcher)
 		{
-			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+			try
 			{
-				if (assembly.GetName().Name == "Unity.VisualStudio.Editor")
+				foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 				{
-					var installType = assembly.GetType("Microsoft.Unity.VisualStudio.Editor.VisualStudioCodeInstallation");
-					
-					if (installType != null)
+					if (assembly.GetName().Name == "Unity.VisualStudio.Editor")
 					{
-						/*{
-							//TryDiscoverInstallation
-							var orig = installType.GetMethod("TryDiscoverInstallation", BindingFlags.Public | BindingFlags.Static);
-							var postfix = typeof(TestPatches).GetMethod(nameof(TryDiscoverInstallationPostfix), BindingFlags.NonPublic | BindingFlags.Static);
-							patcher.Patch(orig, null, postfix);
-						}*/
-
+						var installType = assembly.GetType("Microsoft.Unity.VisualStudio.Editor.VisualStudioCodeInstallation");
+						
+						if (installType != null)
 						{
-							//ProcessStartInfoFor
-							var orig = installType.GetMethod("ProcessStartInfoFor", BindingFlags.NonPublic | BindingFlags.Static);
-							var prefix = typeof(VisualStudioCodeEditorPatches).GetMethod(nameof(ProcessStartInfoForPrefix), BindingFlags.NonPublic | BindingFlags.Static);
-							patcher.Patch(orig, prefix, null);
-						}
-					}
+							/*{
+								//TryDiscoverInstallation
+								var orig = installType.GetMethod("TryDiscoverInstallation", BindingFlags.Public | BindingFlags.Static);
+								var postfix = typeof(TestPatches).GetMethod(nameof(TryDiscoverInstallationPostfix), BindingFlags.NonPublic | BindingFlags.Static);
+								patcher.Patch(orig, null, postfix);
+							}*/
 
-					break;
+							{
+								//ProcessStartInfoFor
+								var orig = installType.GetMethod("ProcessStartInfoFor", BindingFlags.NonPublic | BindingFlags.Static);
+								var prefix = typeof(VisualStudioCodeEditorPatches).GetMethod(nameof(ProcessStartInfoForPrefix), BindingFlags.NonPublic | BindingFlags.Static);
+								patcher.Patch(orig, prefix, null);
+							}
+						}
+
+						break;
+					}
 				}
+			}
+			catch (Exception e)
+			{
+				WeaverLog.Log("Failed to patch vscode custom stuff. Continuing anyway " + e);
 			}
 		}
 
 		static bool IsWaylandSessionRunning()
 		{
-			return Environment.GetEnvironmentVariable("WAYLAND_DISPLAY").Contains("wayland");
+			try
+			{
+				var env = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY");
+				return !string.IsNullOrEmpty(env) && env.Contains("wayland");
+			}
+			catch (Exception e)
+			{
+				WeaverLog.Log("ENV Check Failed. Continuing anyway " + e);
+				return false;
+			}
 		}
 
 		static bool ProcessStartInfoForPrefix(object __instance, ref string application, ref string arguments)
 		{
-			if (IsWaylandSessionRunning() && !arguments.StartsWith("--ozone-platform-hint"))
+			try
 			{
-				arguments = "--ozone-platform-hint=wayland --enable-wayland-ime --use-gl=egl " + arguments;
+				if (IsWaylandSessionRunning() && arguments != null && !arguments.StartsWith("--ozone-platform-hint"))
+				{
+					arguments = "--ozone-platform-hint=wayland --enable-wayland-ime --use-gl=egl " + arguments;
+				}
+				return true;
 			}
-			return true;
+			catch (Exception e)
+			{
+				WeaverLog.Log("Custom process start for vscode failed. Continuing anyway " + e);
+				return true;
+			}
 		}
 
 		static void TryDiscoverInstallationPostfix(object __instance, ref object installation)
