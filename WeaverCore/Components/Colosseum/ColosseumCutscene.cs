@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -58,6 +59,11 @@ namespace WeaverCore.Components.Colosseum
         }
 
         public override IEnumerator RunWave(ColosseumRoomManager challenge)
+        {
+            yield return CutsceneRoutine();
+        }
+
+        protected override IEnumerator ManuallyRunRoutine(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
         {
             yield return CutsceneRoutine();
         }

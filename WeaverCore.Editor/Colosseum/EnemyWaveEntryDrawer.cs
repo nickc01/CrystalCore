@@ -2,15 +2,24 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using WeaverCore;
 using WeaverCore.Components.Colosseum;
+using WeaverCore.Utilities;
 
 [CustomPropertyDrawer(typeof(EnemyWaveEntry))]
-public class WaveEntryDrawer : PropertyDrawer
+public class EnemyWaveEntryDrawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         // Get the Challenge reference
-        EnemyWave wave = property.serializedObject.targetObject as EnemyWave;
+        Wave wave = property.serializedObject.targetObject as Wave;
+
+        if (wave == null || !(wave is EnemyWave || wave is HybridWave))
+        {
+            base.OnGUI(position, property, label);
+            return;
+        }
+
         ColosseumRoomManager challenge = wave.GetComponentInParent<ColosseumRoomManager>();
         if (challenge == null)
         {
@@ -33,6 +42,11 @@ public class WaveEntryDrawer : PropertyDrawer
         Rect enemyRect = new Rect(position.x, y, position.width, lineHeight);
         string[] enemyOptions = GetEnemyOptions(challenge);
         string[] aliases = GetEnemyAliases(challenge, enemyOptions);
+
+        if (string.IsNullOrEmpty(enemyNameProp.stringValue))
+        {
+            enemyNameProp.stringValue = "Empty";
+        }
         int enemyIndex = System.Array.IndexOf(enemyOptions, enemyNameProp.stringValue);
 
         if (enemyIndex < 0) // Not in the options
@@ -50,6 +64,10 @@ public class WaveEntryDrawer : PropertyDrawer
         SerializedProperty spawnLocationNameProp = property.FindPropertyRelative("spawnLocationName");
         Rect spawnRect = new Rect(position.x, y, position.width, lineHeight);
         string[] spawnOptions = GetSpawnLocationOptions(challenge);
+        if (string.IsNullOrEmpty(spawnLocationNameProp.stringValue))
+        {
+            spawnLocationNameProp.stringValue = "Empty";
+        }
         int spawnIndex = System.Array.IndexOf(spawnOptions, spawnLocationNameProp.stringValue);
 
         if (spawnIndex < 0) // Not in the options
@@ -78,8 +96,26 @@ public class WaveEntryDrawer : PropertyDrawer
         // Entry Color
         SerializedProperty entryColorProp = property.FindPropertyRelative("entryColor");
         var value = entryColorProp.colorValue;
-        var first = wave.entries.FirstOrDefault(e => e.entryColor == value);
-        var last = wave.entries.LastOrDefault(e => e.entryColor == value);
+
+        EnemyWaveEntry first = null;
+        EnemyWaveEntry last = null;
+
+        if (wave is EnemyWave enemyWave)
+        {
+            first = enemyWave.entries.FirstOrDefault(e => e.entryColor == value);
+            last = enemyWave.entries.LastOrDefault(e => e.entryColor == value);
+        }
+        else if (wave is HybridWave hybridWave)
+        {
+            //WeaverLog.Log("HYBRID WAVE = " + hybridWave);
+            //WeaverLog.Log("ENTRIES = " + hybridWave.entries);
+            first = hybridWave.entries.FirstOrDefault(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy && e.enemyData.entryColor == value)?.enemyData;
+            last = hybridWave.entries.LastOrDefault(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy && e.enemyData.entryColor == value)?.enemyData;
+        }
+
+        //var test = wave as EnemyWave;
+        //var first = test.entries.FirstOrDefault(e => e.entryColor == value);
+        //var last = test.entries.LastOrDefault(e => e.entryColor == value);
 
         if (value == default || (last != first && value == last.entryColor && value == first.entryColor))
         {

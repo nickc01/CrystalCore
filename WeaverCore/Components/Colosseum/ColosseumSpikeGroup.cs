@@ -70,6 +70,36 @@ namespace WeaverCore.Components.Colosseum
 
         public void RetractSpikes() => RetractSpikesRoutine(this);
 
+        public void RaiseSpikesByType(int spikeMode) 
+        {
+            var values = Enum.GetValues(typeof(SpikeMode));
+
+            foreach (var val in values)
+            {
+                if ((int)val == spikeMode)
+                {
+                    RaiseSpikesRoutine(this, (SpikeMode)spikeMode);
+                }
+            }
+
+            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+        }
+
+        public void RetractSpikesByType(int spikeMode)
+        {
+            var values = Enum.GetValues(typeof(SpikeMode));
+
+            foreach (var val in values)
+            {
+                if ((int)val == spikeMode)
+                {
+                    RetractSpikesRoutine(this, (SpikeMode)spikeMode);
+                }
+            }
+
+            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+        }
+
         private void Awake() 
         {
             if (debugTesting)
@@ -92,23 +122,25 @@ namespace WeaverCore.Components.Colosseum
             }
         }
 
-        public static Func<bool> RetractSpikesRoutine(ColosseumSpikeGroup group)
+        public static Func<bool> RetractSpikesRoutine(ColosseumSpikeGroup group, SpikeMode? spikeModeOverride = null)
         {
             if (group == null)
             {
                 return () => true;
             }
 
+            SpikeMode spikeMode = spikeModeOverride ?? group.Mode;
+
             List<Func<bool>> completedSpikes = new List<Func<bool>>();
 
-            if (group.Mode == SpikeMode.AllAtOnce)
+            if (spikeMode == SpikeMode.AllAtOnce)
             {
                 foreach (var spike in group.Spikes)
                 {
                     completedSpikes.Add(spike.RetractAndWait(group.PreDelay, spike == group.Spikes[0] ? 1f : 0f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredDynamic)
+            else if (spikeMode == SpikeMode.StaggeredDynamic)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderBy(s => Mathf.Abs(Player.Player1.transform.position.x - s.transform.position.x)).ToList();
@@ -127,7 +159,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].RetractAndWait(group.PreDelay + (group.StaggeredDelay * max) - (group.StaggeredDelay * diff), 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredLeftToRight)
+            else if (spikeMode == SpikeMode.StaggeredLeftToRight)
             {
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
                 for (int i = 0; i < orderedSpikes.Count; i++)
@@ -135,7 +167,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].RetractAndWait(group.PreDelay + (group.StaggeredDelay * i), 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredRightToLeft)
+            else if (spikeMode == SpikeMode.StaggeredRightToLeft)
             {
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderByDescending(s => s.transform.position.x).ToList();
                 for (int i = 0; i < orderedSpikes.Count; i++)
@@ -143,7 +175,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].RetractAndWait(group.PreDelay + (group.StaggeredDelay * i), 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredSidesToCenter)
+            else if (spikeMode == SpikeMode.StaggeredSidesToCenter)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
 
@@ -168,7 +200,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].RetractAndWait(group.PreDelay + (group.StaggeredDelay * max) - (group.StaggeredDelay * diff), 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredCenterToSides)
+            else if (spikeMode == SpikeMode.StaggeredCenterToSides)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
 
@@ -197,25 +229,27 @@ namespace WeaverCore.Components.Colosseum
             return () => completedSpikes.All(c => c());
         }
 
-        public static Func<bool> RaiseSpikesRoutine(ColosseumSpikeGroup group)
+        public static Func<bool> RaiseSpikesRoutine(ColosseumSpikeGroup group, SpikeMode? spikeModeOverride = null)
         {
             if (group == null)
             {
                 return () => true;
             }
 
+            SpikeMode spikeMode = spikeModeOverride ?? group.Mode;
+
             group.gameObject.SetActive(true);
 
             List<Func<bool>> completedSpikes = new List<Func<bool>>();
 
-            if (group.Mode == SpikeMode.AllAtOnce)
+            if (spikeMode == SpikeMode.AllAtOnce)
             {
                 foreach (var spike in group.Spikes)
                 {
                     completedSpikes.Add(spike.ExpandAndWait(group.PreDelay, group.AnticDuration, spike == group.Spikes[0] ? 1f : 0f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredDynamic)
+            else if (spikeMode == SpikeMode.StaggeredDynamic)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderBy(s => Mathf.Abs(Player.Player1.transform.position.x - s.transform.position.x)).ToList();
@@ -234,7 +268,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].ExpandAndWait(group.PreDelay + (group.StaggeredDelay * max) - (group.StaggeredDelay * diff), group.AnticDuration, 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredLeftToRight)
+            else if (spikeMode == SpikeMode.StaggeredLeftToRight)
             {
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
                 for (int i = 0; i < orderedSpikes.Count; i++)
@@ -242,7 +276,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].ExpandAndWait(group.PreDelay + (group.StaggeredDelay * i), group.AnticDuration, 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredRightToLeft)
+            else if (spikeMode == SpikeMode.StaggeredRightToLeft)
             {
                 List<ColosseumSpike> orderedSpikes = group.Spikes.OrderByDescending(s => s.transform.position.x).ToList();
                 for (int i = 0; i < orderedSpikes.Count; i++)
@@ -250,7 +284,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].ExpandAndWait(group.PreDelay + (group.StaggeredDelay * i), group.AnticDuration, 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredSidesToCenter)
+            else if (spikeMode == SpikeMode.StaggeredSidesToCenter)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
 
@@ -275,7 +309,7 @@ namespace WeaverCore.Components.Colosseum
                     completedSpikes.Add(orderedSpikes[i].ExpandAndWait(group.PreDelay + (group.StaggeredDelay * max) - (group.StaggeredDelay * diff), group.AnticDuration, 0.5f));
                 }
             }
-            else if (group.Mode == SpikeMode.StaggeredCenterToSides)
+            else if (spikeMode == SpikeMode.StaggeredCenterToSides)
             {
                 List<ColosseumSpike> leftToRightSpikes = group.Spikes.OrderBy(s => s.transform.position.x).ToList();
 

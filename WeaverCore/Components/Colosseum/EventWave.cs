@@ -11,6 +11,7 @@ using System;
 
 namespace WeaverCore.Components.Colosseum
 {
+
     public class EventWave : Wave, ISerializationCallbackReceiver, IColosseumIdentifier
     {
         static Dictionary<Type, FieldCopierBuilder<object>.ShallowCopyDelegate> copiers;
@@ -18,8 +19,22 @@ namespace WeaverCore.Components.Colosseum
         [Tooltip("Minimum duration the wave can last.")]
         public float minimumDuration = 10f;
 
+        [Tooltip("How many times to loop the event wave.")]
+        public int loopCount = 0;
+
+        [Tooltip("The delay between each loop. This doesn't nothing if the Loop Count is set to 0")]
+        public float loopDelay = 0;
+
+        [Tooltip("Delay before the wave ends.")]
+        public float endingDelay = 0f;
+
+        [Tooltip("If set to true, then this wave can only be run if manually triggered. Be sure to check this box to prevent the wave from being automatically triggered")]
+        public bool ManuallyTriggered = false;
+
         [Tooltip("List of event wave entries defining events to run during the wave.")]
         public List<EventWaveEntry> entries = new List<EventWaveEntry>();
+
+        public override bool AutoRun => base.AutoRun && !ManuallyTriggered;
 
         [SerializeField]
         [HideInInspector]
@@ -37,18 +52,56 @@ namespace WeaverCore.Components.Colosseum
 
         public override IEnumerator RunWave(ColosseumRoomManager challenge)
         {
+            yield return RunWaveInternal(challenge, () => ManualStopType.None);
+        }
+
+        public IEnumerator RunWaveInternal(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
+        {
             float waveStartTime = Time.time;
 
-            foreach (var entry in entries.OrderBy(e => e.delayBeforeRun))
+            for (int l = 0; l <= loopCount; l++)
             {
-                yield return new WaitForSeconds(entry.delayBeforeRun - (Time.time - waveStartTime));
+                foreach (var entry in entries.OrderBy(e => e.delayBeforeRun))
+                {
+                    yield return CoroutineUtilities.WaitForTimeOrPredicate(entry.delayBeforeRun - (Time.time - waveStartTime), () => doStop() == ManualStopType.Forcefully);
 
-                entry.eventsToRun?.Invoke();
+                    if (doStop() == ManualStopType.Forcefully)
+                    {
+                        yield break;
+                    }
+                    //yield return new WaitForSeconds(entry.delayBeforeRun - (Time.time - waveStartTime));
+
+                    entry.eventsToRun?.Invoke();
+                }
+
+                while (Time.time - waveStartTime < minimumDuration)
+                {
+                    if (doStop() == ManualStopType.Forcefully)
+                    {
+                        yield break;
+                    }
+                    yield return null;
+                }
+
+                if (l == loopCount)
+                {
+                    yield return CoroutineUtilities.WaitForTimeOrPredicate(loopDelay, () => doStop() == ManualStopType.Forcefully);
+                    if (doStop() == ManualStopType.Forcefully)
+                    {
+                        yield break;
+                    }
+                    //yield return new WaitForSeconds(loopDelay);
+                }
+
+                if (doStop() == ManualStopType.Gracefully || doStop() == ManualStopType.Forcefully)
+                {
+                    yield break;
+                }
             }
 
-            while (Time.time - waveStartTime < minimumDuration)
+            if (endingDelay > 0)
             {
-                yield return null;
+                yield return new WaitForSeconds(endingDelay);
             }
         }
 
@@ -104,55 +157,12 @@ namespace WeaverCore.Components.Colosseum
 
             entries_delayBeforeRun.Clear();
             entries_delayBeforeRun.AddRange(entries.Select(e => e.delayBeforeRun));
-
-            //WeaverSerializer.Serialize(entries, out entries_json, out entries_references);
-            /*if (entries_eventsToRun.Count != entries.Count)
-            {
-                entries_eventsToRun.Clear();
-                entries_eventsToRun.AddRange(entries.Select(e => e.eventsToRun));
-            }*/
-            /*else
-            {
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    entries_eventsToRun[i] = entries[i].eventsToRun;
-                }
-            }*/
-
-            //entries_eventsToRun = entries.Select(e => e.eventsToRun).ToList();
-
-            /*if (entries_delayBeforeRun.Count != entries.Count)
-            {
-                entries_delayBeforeRun.Clear();
-                entries_delayBeforeRun.AddRange(entries.Select(e => e.delayBeforeRun));
-            }*/
-            /*else
-            {
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    entries_delayBeforeRun[i] = entries[i].delayBeforeRun;
-                }
-            }*/
-            //entries_delayBeforeRun = entries.Select(e => e.delayBeforeRun).ToList();
         }
         #endif
 
         public void OnBeforeSerialize()
         {
-            //WeaverLog.Log("BEFORE = " + Newtonsoft.Json.JsonConvert.SerializeObject(entries));
-            //entries_eventsToRun.Clear();
-            //WeaverLog.Log("AFTER = " + Newtonsoft.Json.JsonConvert.SerializeObject(entries));
-            //entries_eventsToRun.AddRange(entries.Select(e => e.eventsToRun));
-            //WeaverLog.Log("AFTER 2 = " + Newtonsoft.Json.JsonConvert.SerializeObject(entries));
-
-
-            //entries_delayBeforeRun.Clear();
-            //entries_delayBeforeRun.AddRange(entries.Select(e => e.delayBeforeRun));
-            /*entries_eventsToRun.Clear();
-            entries_eventsToRun.AddRange(entries.Select(e => e.eventsToRun));
-
-            entries_delayBeforeRun.Clear();
-            entries_delayBeforeRun.AddRange(entries.Select(e => e.delayBeforeRun));*/
+            
         }
 
         public void OnAfterDeserialize()
@@ -169,6 +179,11 @@ namespace WeaverCore.Components.Colosseum
                 });
             }
             #endif
+        }
+
+        protected override IEnumerator ManuallyRunRoutine(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
+        {
+            yield return RunWaveInternal(challenge, () => ManualStopType.None);
         }
     }
 }

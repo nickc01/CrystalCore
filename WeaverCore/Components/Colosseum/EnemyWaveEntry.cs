@@ -6,10 +6,10 @@ namespace WeaverCore.Components.Colosseum
     public class EnemyWaveEntry
     {
         [Tooltip("Name of the enemy to spawn.")]
-        public string enemyName;
+        public string enemyName = "Empty";
 
         [Tooltip("Name of the spawn location for the enemy.")]
-        public string spawnLocationName;
+        public string spawnLocationName = "Empty";
 
         [Tooltip("The delay from the start of the wave before spawning this enemy.")]
         public float delayBeforeSpawn;
