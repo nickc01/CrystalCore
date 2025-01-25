@@ -83,7 +83,7 @@ namespace WeaverCore.Components.Colosseum
                     yield return null;
                 }
 
-                if (l == loopCount)
+                if (l != loopCount)
                 {
                     yield return CoroutineUtilities.WaitForTimeOrPredicate(loopDelay, () => doStop() == ManualStopType.Forcefully);
                     if (doStop() == ManualStopType.Forcefully)

@@ -268,7 +268,7 @@ namespace WeaverCore.Components.Colosseum
                     }
                 }
 
-                if (l == loopCount)
+                if (l != loopCount)
                 {
                     yield return CoroutineUtilities.WaitForTimeOrPredicate(loopDelay, () => doStop() != ManualStopType.None);
                     //yield return new WaitForSeconds(loopDelay);

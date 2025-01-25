@@ -11,6 +11,13 @@ namespace WeaverCore.Components.Colosseum
 {
     public class HybridWave : Wave, ISerializationCallbackReceiver, IColosseumIdentifier
     {
+        public enum LoopKind {
+            None,
+            EnemiesOnly,
+            EventsOnly,
+            Both
+        }
+
         [Serializable]
         class EnemyDataContainer
         {
@@ -25,6 +32,9 @@ namespace WeaverCore.Components.Colosseum
 
         [Tooltip("The delay between each loop. This doesn't nothing if the Loop Count is set to 0")]
         public float loopDelay = 0;
+
+        [Tooltip("What the additional loops will run. \"None\" disables looping. \"Enemies Only\" will only repeat enemy entries when looping. \"Events Only\" will only repeat event entries when looping. \"Both\" will repeat everything upon looping.")]
+        public LoopKind LoopingKind = LoopKind.Both;
 
         [Tooltip("Delay before the wave ends.")]
         public float endingDelay = 0f;
@@ -132,17 +142,23 @@ namespace WeaverCore.Components.Colosseum
 
         IEnumerator RunWaveInternal(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
         {
+            LoopKind currentLoopKind = LoopKind.Both;
             for (int l = 0; l <= loopCount; l++)
             {
                 float waveStartTime = Time.time;
                 List<MonoBehaviour> prioritizedEnemies = new List<MonoBehaviour>();
                 Dictionary<MonoBehaviour, (Vector3, float)> lastPositions = new Dictionary<MonoBehaviour, (Vector3, float)>();
 
-                List<int> awaitingSummons = new List<int>(entries.Where(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy).Select((_,i) => i));
+                bool isEnemyLoop = currentLoopKind == LoopKind.EnemiesOnly || currentLoopKind == LoopKind.Both;
+                bool isEventLoop = currentLoopKind == LoopKind.EventsOnly || currentLoopKind == LoopKind.Both;
+
+                List<int> awaitingSummons = new List<int>(entries.Where(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy && isEnemyLoop).Select((_,i) => i));
                 int enemyCount = -1;
-                //foreach (EnemyWaveEntry entry in entries.OrderBy(e => e.delayBeforeSpawn))
-                foreach (var entry in entries.OrderBy(e => e.DelayBeforeSpawn))
+                int entryCount = 0;
+                //foreach (EnemyWaveEntry entry in entries.OrderBy(e => e.delayBeforeSpawn)
+                foreach (var entry in entries.Where(e => (e.Type == HybridWaveEntry.HybridWaveType.Enemy && isEnemyLoop) || (e.Type == HybridWaveEntry.HybridWaveType.Event && isEventLoop)).OrderBy(e => e.DelayBeforeSpawn))
                 {
+                    entryCount++;
                     if (entry.Type == HybridWaveEntry.HybridWaveType.Enemy)
                     {
                         var enemyEntry = entry.enemyData;
@@ -265,6 +281,13 @@ namespace WeaverCore.Components.Colosseum
 
                 }
 
+                WeaverLog.Log("ENTRY COUNT = " + entryCount);
+
+                if (entryCount == 0)
+                {
+                    break;
+                }
+
 
                 yield return new WaitUntil(() => awaitingSummons.Count == 0 || doStop() != ManualStopType.None);
 
@@ -338,10 +361,19 @@ namespace WeaverCore.Components.Colosseum
                     }
                 }
 
-                if (l == loopCount)
+                if (l != loopCount)
                 {
                     yield return CoroutineUtilities.WaitForTimeOrPredicate(loopDelay, () => doStop() != ManualStopType.None);
                     //yield return new WaitForSeconds(loopDelay);
+                }
+
+                if (LoopingKind == LoopKind.EnemiesOnly)
+                {
+                    currentLoopKind = LoopKind.EnemiesOnly;
+                }
+                else if (LoopingKind == LoopKind.EventsOnly)
+                {
+                    currentLoopKind = LoopKind.EventsOnly;
                 }
 
                 WeaverLog.Log("STOP STATE = " + doStop());
