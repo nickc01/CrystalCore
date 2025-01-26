@@ -72,7 +72,13 @@ namespace WeaverCore.Components.Colosseum
 
         public void RaiseSpikesByType(int spikeMode) 
         {
-            var values = Enum.GetValues(typeof(SpikeMode));
+            if (spikeMode < 0 || spikeMode > 5)
+            {
+                throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+            }
+
+            RaiseSpikesRoutine(this, (SpikeMode)spikeMode);
+            /*var values = Enum.GetValues(typeof(SpikeMode));
 
             foreach (var val in values)
             {
@@ -82,12 +88,18 @@ namespace WeaverCore.Components.Colosseum
                 }
             }
 
-            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");*/
         }
 
         public void RetractSpikesByType(int spikeMode)
         {
-            var values = Enum.GetValues(typeof(SpikeMode));
+            if (spikeMode < 0 || spikeMode > 5)
+            {
+                throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+            }
+
+            RetractSpikesRoutine(this, (SpikeMode)spikeMode);
+            /*var values = Enum.GetValues(typeof(SpikeMode));
 
             foreach (var val in values)
             {
@@ -97,7 +109,7 @@ namespace WeaverCore.Components.Colosseum
                 }
             }
 
-            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");
+            throw new Exception($"Error: {spikeMode} isn't a valid spike mode");*/
         }
 
         private void Awake() 

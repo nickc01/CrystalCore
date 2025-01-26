@@ -6,6 +6,9 @@ using WeaverCore.Utilities;
 using System;
 using TMPro;
 using UnityEngine.Events;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace WeaverCore.Components.Colosseum
 {
@@ -36,14 +39,20 @@ namespace WeaverCore.Components.Colosseum
         [Tooltip("What the additional loops will run. \"None\" disables looping. \"Enemies Only\" will only repeat enemy entries when looping. \"Events Only\" will only repeat event entries when looping. \"Both\" will repeat everything upon looping.")]
         public LoopKind LoopingKind = LoopKind.Both;
 
-        [Tooltip("Delay before the wave ends.")]
+        [Tooltip("Additional delay before the wave ends.")]
         public float endingDelay = 0f;
 
         [Tooltip("If set to true, then this wave can only be run if manually triggered. Be sure to check this box to prevent the wave from being automatically triggered")]
         public bool ManuallyTriggered = false;
 
+        [Tooltip("When should the wave check if all enemies are killed? \"AtEndOfLoop\" does the check at the end of each loop. \"AtEndOfWave\" does the check at the end of the wave")]
+        public EnemyWave.EnemyCheck WhenToCheckEnemies = EnemyWave.EnemyCheck.AtEndOfLoop;
+
         [Tooltip("List of hybrid wave entries defining events to run or enemies to spawn during the wave.")]
         public List<HybridWaveEntry> entries = new List<HybridWaveEntry>();
+
+        [Tooltip("If set to true, then it will wait until all enemies within a loop are fully spawned before moving on.")]
+        public bool WaitTillEnemiesAreFullySpawned = true;
 
         public string Identifier => "Hybrid Waves";
 
@@ -142,20 +151,34 @@ namespace WeaverCore.Components.Colosseum
 
         IEnumerator RunWaveInternal(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
         {
+            var sceneManager = GameObject.FindObjectOfType<WeaverSceneManager>();
+
+            Rect sceneBounds = default;
+
             LoopKind currentLoopKind = LoopKind.Both;
+
+            List<MonoBehaviour> prioritizedEnemies = new List<MonoBehaviour>();
+            Dictionary<MonoBehaviour, (Vector3, float)> lastPositions = new Dictionary<MonoBehaviour, (Vector3, float)>();
+
+            int enemyCount = -1;
+
             for (int l = 0; l <= loopCount; l++)
             {
                 float waveStartTime = Time.time;
-                List<MonoBehaviour> prioritizedEnemies = new List<MonoBehaviour>();
-                Dictionary<MonoBehaviour, (Vector3, float)> lastPositions = new Dictionary<MonoBehaviour, (Vector3, float)>();
+
+                if (WhenToCheckEnemies == EnemyWave.EnemyCheck.AtEndOfLoop)
+                {
+                    enemyCount = -1;
+                    prioritizedEnemies.Clear();
+                    lastPositions.Clear();
+                }
+
+                int entryCount = 0;
 
                 bool isEnemyLoop = currentLoopKind == LoopKind.EnemiesOnly || currentLoopKind == LoopKind.Both;
                 bool isEventLoop = currentLoopKind == LoopKind.EventsOnly || currentLoopKind == LoopKind.Both;
 
-                List<int> awaitingSummons = new List<int>(entries.Where(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy && isEnemyLoop).Select((_,i) => i));
-                int enemyCount = -1;
-                int entryCount = 0;
-                //foreach (EnemyWaveEntry entry in entries.OrderBy(e => e.delayBeforeSpawn)
+                List<int> awaitingSummons = new List<int>(entries.Where(e => e.Type == HybridWaveEntry.HybridWaveType.Enemy && isEnemyLoop).Select((_,i) => i + enemyCount + 1));
                 foreach (var entry in entries.Where(e => (e.Type == HybridWaveEntry.HybridWaveType.Enemy && isEnemyLoop) || (e.Type == HybridWaveEntry.HybridWaveType.Event && isEventLoop)).OrderBy(e => e.DelayBeforeSpawn))
                 {
                     entryCount++;
@@ -289,17 +312,13 @@ namespace WeaverCore.Components.Colosseum
                 }
 
 
-                yield return new WaitUntil(() => awaitingSummons.Count == 0 || doStop() != ManualStopType.None);
+                yield return new WaitUntil(() => awaitingSummons.Count == 0 || doStop() != ManualStopType.None || !WaitTillEnemiesAreFullySpawned);
 
                 // Wait for minimum duration
-                while (Time.time - waveStartTime < minimumDuration && doStop() != ManualStopType.None)
+                while (Time.time - waveStartTime < minimumDuration && doStop() == ManualStopType.None)
                 {
                     yield return null;
                 }
-
-                var sceneManager = GameObject.FindObjectOfType<WeaverSceneManager>();
-
-                Rect sceneBounds = default;
 
                 if (sceneManager != null)
                 {
@@ -307,7 +326,7 @@ namespace WeaverCore.Components.Colosseum
                 }
 
                 // Wait for prioritized enemies to be destroyed (i.e., their health reaches 0)
-                if (prioritizedEnemies.Count > 0)
+                if (prioritizedEnemies.Count > 0 && WhenToCheckEnemies == EnemyWave.EnemyCheck.AtEndOfLoop)
                 {
                     while (true)
                     //while (prioritizedEnemies.Exists(e => HealthUtilities.TryGetHealth(e, out var health) && health > 0 || (e.TryGetComponent<PoolableObject>(out var pool) && pool.InPool)))
@@ -367,6 +386,8 @@ namespace WeaverCore.Components.Colosseum
                     //yield return new WaitForSeconds(loopDelay);
                 }
 
+                //yield return CoroutineUtilities.WaitForTimeOrPredicate(endingDelay, () => doStop() != ManualStopType.None);
+
                 if (LoopingKind == LoopKind.EnemiesOnly)
                 {
                     currentLoopKind = LoopKind.EnemiesOnly;
@@ -376,7 +397,7 @@ namespace WeaverCore.Components.Colosseum
                     currentLoopKind = LoopKind.EventsOnly;
                 }
 
-                WeaverLog.Log("STOP STATE = " + doStop());
+                //WeaverLog.Log("STOP STATE = " + doStop());
 
                 if (doStop() == ManualStopType.Gracefully || doStop() == ManualStopType.Forcefully)
                 {
@@ -384,7 +405,137 @@ namespace WeaverCore.Components.Colosseum
                 }
             }
 
+            if (sceneManager != null)
+            {
+                sceneBounds = sceneManager.SceneDimensions;
+            }
+
+            // Wait for prioritized enemies to be destroyed (i.e., their health reaches 0)
+            if (prioritizedEnemies.Count > 0 && WhenToCheckEnemies == EnemyWave.EnemyCheck.AtEndOfWave)
+            {
+                while (true)
+                //while (prioritizedEnemies.Exists(e => HealthUtilities.TryGetHealth(e, out var health) && health > 0 || (e.TryGetComponent<PoolableObject>(out var pool) && pool.InPool)))
+                {
+                    bool IsAlive(MonoBehaviour e)
+                    {
+                        bool isAlive = true;
+                        if (e == null || e.gameObject == null)
+                        {
+                            isAlive = false;
+                        }
+
+                        if (isAlive && e.TryGetComponent<PoolableObject>(out var poolableObject))
+                        {
+                            isAlive = !poolableObject.InPool;
+                        }
+
+                        if (isAlive && lastPositions.TryGetValue(e, out var pair))
+                        {
+                            if (Vector2.Distance(e.transform.position, pair.Item1) > 0.1)
+                            {
+                                pair = (e.transform.position, Time.time);
+                                lastPositions[e] = pair;
+                            }
+
+                            if (Time.time - pair.Item2 >= 10f)
+                            {
+                                isAlive = false;
+                            }
+                        }
+
+                        if (isAlive && sceneManager != null)
+                        {
+                            isAlive = sceneBounds.IsWithin(e.transform.position);
+                        }
+
+                        if (isAlive && HealthUtilities.TryGetHealth(e, out var health))
+                        {
+                            isAlive = health > 0;
+                        }
+
+                        return isAlive;
+                    }
+
+
+                    if (!prioritizedEnemies.Exists(e => IsAlive(e)) || doStop() != ManualStopType.None)
+                    {
+                        break;
+                    }
+                    yield return null;
+                }
+            }
+
             yield return new WaitForSeconds(endingDelay);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            #if UNITY_EDITOR
+                if (Selection.gameObjects.IndexOf(gameObject) < 0)
+                {
+                    return;
+                }
+            #endif
+
+            ColosseumRoomManager challenge = GetComponentInParent<ColosseumRoomManager>();
+
+            if (challenge != null && challenge.EnemySpawnPointsLabels)
+            {
+                // Group entries by spawn location
+                Dictionary<ColosseumEnemySpawner, List<EnemyWaveEntry>> entriesBySpawnLocation = new Dictionary<ColosseumEnemySpawner, List<EnemyWaveEntry>>();
+
+                foreach (var entry in entries)
+                {
+                    if (entry.Type == HybridWaveEntry.HybridWaveType.Enemy)
+                    {
+                        var enemyEntry = entry.enemyData;
+                        ColosseumEnemySpawner spawnLocation = challenge.spawnLocations.Find(s => s.name == enemyEntry.spawnLocationName);
+                        if (spawnLocation != null)
+                        {
+                            if (!entriesBySpawnLocation.ContainsKey(spawnLocation))
+                            {
+                                entriesBySpawnLocation[spawnLocation] = new List<EnemyWaveEntry>();
+                            }
+                            entriesBySpawnLocation[spawnLocation].Add(enemyEntry);
+                        }
+                    }
+                }
+
+                float offsetAmount = 1f; // Adjust this value as needed
+
+                // Draw entries with offset
+                foreach (var kvp in entriesBySpawnLocation)
+                {
+                    ColosseumEnemySpawner spawnLocation = kvp.Key;
+                    List<EnemyWaveEntry> entriesAtLocation = kvp.Value;
+
+                    var spawnPoint = spawnLocation.transform.position;
+
+                    for (int i = 0; i < entriesAtLocation.Count; i++)
+                    {
+                        EnemyWaveEntry entry = entriesAtLocation[i];
+
+                        // Calculate offset position
+                        Vector3 offset = Vector3.down * i * offsetAmount;
+
+                        // Draw the location where the enemy will spawn
+                        Gizmos.color = entry.entryColor;
+                        Gizmos.DrawSphere(spawnPoint, 0.3f);
+
+                        Gizmos.color = spawnLocation.EditorColor;
+                        Gizmos.DrawLine(transform.position, spawnPoint);
+
+                        #if UNITY_EDITOR
+
+                        var style = new GUIStyle(EditorStyles.textField);
+                        style.normal.textColor = Color.Lerp(entry.entryColor, Color.white, 0.5f);
+                        style.fontSize = 20;
+                        Handles.Label(spawnPoint + offset, new GUIContent(entry.enemyName), style);
+
+                        #endif
+                    }
+                }
+            }
         }
 
         protected override IEnumerator ManuallyRunRoutine(ColosseumRoomManager challenge, Func<ManualStopType> doStop)

@@ -57,10 +57,9 @@ namespace WeaverCore.Components.Colosseum
 
         public IEnumerator RunWaveInternal(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
         {
-            float waveStartTime = Time.time;
-
             for (int l = 0; l <= loopCount; l++)
             {
+                float waveStartTime = Time.time;
                 foreach (var entry in entries.OrderBy(e => e.delayBeforeRun))
                 {
                     yield return CoroutineUtilities.WaitForTimeOrPredicate(entry.delayBeforeRun - (Time.time - waveStartTime), () => doStop() == ManualStopType.Forcefully);
