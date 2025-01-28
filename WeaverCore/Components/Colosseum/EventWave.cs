@@ -107,50 +107,11 @@ namespace WeaverCore.Components.Colosseum
         static UnityEvent Clone(UnityEvent source)
         {
             return JsonUtility.FromJson<UnityEvent>(JsonUtility.ToJson(source));
-            /*var copy = new UnityEvent();
-            foreach (var pair in copiers)
-            {
-                pair.Value(copy, source);
-            }
-            return copy;*/
         }
 
         #if UNITY_EDITOR
         private void OnValidate() 
         {
-            if (copiers == null)
-            {
-                copiers = new Dictionary<Type, FieldCopierBuilder<object>.ShallowCopyDelegate>();
-                var currentType = typeof(UnityEvent);
-
-                while (currentType != null && currentType != typeof(object))
-                {
-                    var copier = new FieldCopierBuilder<object>(currentType);
-                    foreach (FieldInfo field in currentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                    {
-                        if (!field.IsInitOnly && !field.IsLiteral)
-                        {
-                            if (field.FieldType.IsValueType || field.FieldType.IsEnum)
-                            {
-                                copier.AddField(field);
-                            }
-                            else if (field.FieldType.IsClass && (field.IsPublic || field.IsDefined(typeof(SerializeField), true)))
-                            {
-                                if (!typeof(Component).IsAssignableFrom(field.FieldType) && !typeof(GameObject).IsAssignableFrom(field.FieldType))
-                                {
-                                    copier.AddField(field);
-                                }
-                            }
-                        }
-                    }
-                    
-                    copiers.Add(currentType, copier.Finish());
-                    //cData.Copiers.Add(CreateFieldCopier(currentType));
-
-                    currentType = currentType.BaseType;
-                }
-            }
-
             entries_eventsToRun.Clear();
             entries_eventsToRun.AddRange(entries.Select(e => Clone(e.eventsToRun)));
 
@@ -182,7 +143,7 @@ namespace WeaverCore.Components.Colosseum
 
         protected override IEnumerator ManuallyRunRoutine(ColosseumRoomManager challenge, Func<ManualStopType> doStop)
         {
-            yield return RunWaveInternal(challenge, () => ManualStopType.None);
+            yield return RunWaveInternal(challenge, doStop);
         }
     }
 }

@@ -49,11 +49,8 @@ namespace WeaverCore.Components.Colosseum
         /// </summary>
         public void ManuallyStopWaveGracefully()
         {
-            if (manualRoutine != null)
-            {
-                WeaverLog.Log($"Stopping {name} gracefully");
-                currentStopType = ManualStopType.Gracefully;
-            }
+            WeaverLog.Log($"Stopping {name} gracefully");
+            currentStopType = ManualStopType.Gracefully;
         }
 
         /// <summary>
@@ -61,11 +58,8 @@ namespace WeaverCore.Components.Colosseum
         /// </summary>
         public void ManuallyStopWaveForcefully()
         {
-            if (manualRoutine != null)
-            {
-                WeaverLog.Log($"Stopping {name} forcefully");
-                currentStopType = ManualStopType.Forcefully;
-            }
+            WeaverLog.Log($"Stopping {name} forcefully");
+            currentStopType = ManualStopType.Forcefully;
         }
     }
 }
